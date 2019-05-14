@@ -20,8 +20,7 @@ server.use(helmet());
 server.use('/zoos', router);
 
 server.get('/', (req,res) => {
-  res.send('the server is working');
-
+  res.send('the zoos server is working');
 } )
 
 router.get('/', (req,res) => {
@@ -34,6 +33,54 @@ router.get('/', (req,res) => {
       res.status(500).json(err.message);
     })
 });
+
+router.get('/:id', (req,res) => {
+  db('zoos')
+  .where({id : req.params.id})
+  //.first()
+  .then( zoo => {
+    if (zoo) {
+      res.status(200).json(zoo[0]);
+    } else {
+      res.status(404).json({message : `the zoo with id ${req.params.id} was not found`});
+    }
+  })
+  .catch( err => {
+    res.status(500).json(err);
+  })
+});
+
+router.post('/', (req,res) => {
+  const newZoo = req.body;
+  
+  db('zoos')
+    .insert(newZoo)
+      .then( ids => {
+        res.status(200).json(ids);
+      })
+      .catch( err => {
+        res.status(500).json(err.message);
+      })
+});
+
+router.put('/:zooID', (req,res) => {
+  const zooID = req.params.zooID;
+
+  db('zoos')
+    .where({id : zooID})
+    .update(req.body)
+    .then( count => {
+      if (count > 0) {
+        res.status(200).json(count);
+      } else {
+        res.status(404).json({error : `the zoo with id ${zooID} could not be updated`})
+      }
+    })
+    .catch( err => {
+      res.status(500).json(err.message);
+    })
+})
+
 
 
 
